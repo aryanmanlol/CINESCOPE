@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  core-site.xml — Hadoop Core Configuration (pseudo-distributed)
+  Tells every Hadoop component where the NameNode lives.
+  Place at: $HADOOP_HOME/etc/hadoop/core-site.xml
+  (The install script will symlink/copy from this repo.)
+-->
+<configuration>
+
+  <!-- NameNode URI — all HDFS clients connect here -->
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://localhost:9000</value>
+    <description>
+      The URI of the HDFS NameNode.
+      "localhost:9000" means single-node pseudo-distributed mode.
+    </description>
+  </property>
+
+  <!--
+    Hadoop tmp directory — used for NameNode/DataNode metadata.
+    We put it in the project dir so it's easy to wipe and restart.
+  -->
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/home/${user.name}/cinescope-hadoop-tmp</value>
+    <description>
+      Base directory for temporary Hadoop data.
+      NameNode stores fsimage/edits here; DataNode stores block data here.
+    </description>
+  </property>
+
+  <!-- Allow the hadoop user to impersonate others (needed for Hive/HBase) -->
+  <property>
+    <name>hadoop.proxyuser.${user.name}.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.${user.name}.groups</name>
+    <value>*</value>
+  </property>
+
+</configuration>

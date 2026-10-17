@@ -1,0 +1,92 @@
+# CineScope — Project Configuration
+# Edit DATA_SCALE to switch between DEV / MEDIUM / FULL
+
+# ──────────────────────────────────────────────
+# DATA SCALE
+# ──────────────────────────────────────────────
+# DEV    → ratings_small.csv  (~100k rows)    — always works, fast iteration
+# MEDIUM → ratings subset     (~2M rows)      — run after DEV succeeds
+# FULL   → ratings.csv        (~26M rows)     — only if MEDIUM extrapolates to <6 h
+DATA_SCALE: DEV    # change to MEDIUM or FULL when ready
+
+# ──────────────────────────────────────────────
+# HDFS PATHS  (pseudo-distributed, single-node)
+# ──────────────────────────────────────────────
+hdfs:
+  namenode: hdfs://localhost:9000
+  raw:        /cinescope/raw
+  clean:      /cinescope/clean
+  warehouse:  /cinescope/warehouse
+  mr:         /cinescope/mr
+  serving:    /cinescope/serving
+
+# ──────────────────────────────────────────────
+# DATA SCALE → HDFS INPUT PATH MAPPING
+# ──────────────────────────────────────────────
+input_paths:
+  DEV:    /cinescope/raw/ratings/ratings_small.csv
+  MEDIUM: /cinescope/raw/ratings/ratings_medium.csv
+  FULL:   /cinescope/raw/ratings/ratings.csv
+
+# ──────────────────────────────────────────────
+# MAPREDUCE / CF PARAMETERS
+# ──────────────────────────────────────────────
+cf:
+  min_ratings_per_user: 5      # drop users with fewer ratings (cold-start)
+  max_ratings_per_user: 500    # cap to control pair explosion
+  min_corated_users: 3         # drop movie pairs with fewer co-raters
+  shrinkage_lambda: 10         # shrinkage denominator for adjusted cosine
+  top_k_neighbors: 30          # neighbors stored per movie in HBase
+
+# ──────────────────────────────────────────────
+# CONTENT / SEARCH PARAMETERS
+# ──────────────────────────────────────────────
+search:
+  bm25_k1: 1.5
+  bm25_b: 0.75
+
+# ──────────────────────────────────────────────
+# CLASSIFICATION
+# ──────────────────────────────────────────────
+naive_bayes:
+  min_overview_words: 20        # skip very short overviews
+  test_hash_mod: 10             # hash(docId) % 10 == 0 → test set
+  top_genres:                   # ordered list used as class labels
+    - Drama
+    - Comedy
+    - Thriller
+    - Action
+    - Romance
+    - Horror
+    - Crime
+    - Documentary
+    - Science Fiction
+    - Adventure
+
+# ──────────────────────────────────────────────
+# CLUSTERING
+# ──────────────────────────────────────────────
+kmeans:
+  k: 8                          # number of clusters (refine with elbow plot)
+  max_iterations: 20
+  convergence_threshold: 0.001  # max centroid shift to declare convergence
+  elbow_k_range: [3, 12]        # k values to sweep for SSE
+
+# ──────────────────────────────────────────────
+# WHITELIST / QUALITY THRESHOLDS
+# ──────────────────────────────────────────────
+whitelist:
+  min_ratings_for_movie: 10     # movie must have at least this many ratings
+  require_poster: true          # movie must have non-null poster_path
+
+# ──────────────────────────────────────────────
+# DASHBOARD
+# ──────────────────────────────────────────────
+dashboard:
+  tmdb_image_base: "https://image.tmdb.org/t/p/w342"
+  placeholder_poster: "dashboard/assets/placeholder_poster.png"
+  default_cf_weight: 0.7        # blend: CF score * cf_weight + content * (1-cf_weight)
+  hbase_host: localhost
+  hbase_thrift_port: 9090
+  top_n_home: 50                # movies fetched for Home page hero
+  top_n_recs: 12                # recommendations to show

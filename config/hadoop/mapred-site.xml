@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mapred-site.xml — MapReduce Configuration
+  Tells MapReduce to run on YARN (not local mode).
+  Place at: $HADOOP_HOME/etc/hadoop/mapred-site.xml
+-->
+<configuration>
+
+  <!-- Use YARN as the resource manager for MapReduce jobs -->
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+    <description>
+      "yarn" means MapReduce jobs are scheduled and managed by YARN.
+      Alternative: "local" runs everything in a single JVM (no YARN needed,
+      but doesn't demonstrate the full ecosystem).
+    </description>
+  </property>
+
+  <!--
+    YARN application classpath — critical for Hadoop 3.
+    Without this, MapReduce jobs launched via YARN cannot find Hadoop jars.
+    This is the fix for the common "ClassNotFoundException" on fresh installs.
+  -->
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>
+      $HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,
+      $HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*
+    </value>
+  </property>
+
+  <!--
+    Memory for each Map task container (in MB).
+    With 8 GB WSL RAM and YARN using ~4 GB, we can run 2-3 mappers in parallel.
+    1 GB per mapper is safe and leaves room for the JVM overhead.
+  -->
+  <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>1024</value>
+  </property>
+  <property>
+    <name>mapreduce.map.java.opts</name>
+    <value>-Xmx820m</value>
+    <!-- Java heap = 80% of container memory -->
+  </property>
+
+  <!-- Memory for each Reduce task container -->
+  <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>1024</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.java.opts</name>
+    <value>-Xmx820m</value>
+  </property>
+
+  <!--
+    Hadoop Streaming JAR location.
+    We reference it here so scripts can use $STREAMING_JAR shorthand.
+    The actual value is set at runtime in the shell scripts via:
+      export STREAMING_JAR=$HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar
+  -->
+
+  <!--
+    Job history server address — stores completed job logs.
+    Browse at http://localhost:19888 after starting the history server.
+  -->
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>localhost:10020</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>0.0.0.0:19888</value>
+  </property>
+
+  <!--
+    Reduce slow-start: reducers don't start until 80% of mappers are done.
+    This avoids reducers blocking map slots during the map phase.
+  -->
+  <property>
+    <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+    <value>0.8</value>
+  </property>
+
+  <!--
+    Sort buffer size: 256 MB of each mapper's heap is used for the in-memory
+    sort buffer before spilling to disk. Increase for large map outputs.
+  -->
+  <property>
+    <name>mapreduce.task.io.sort.mb</name>
+    <value>256</value>
+  </property>
+
+</configuration>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  hdfs-site.xml — HDFS Configuration (pseudo-distributed)
+  Controls replication, block size, and DataNode paths.
+  Place at: $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+-->
+<configuration>
+
+  <!--
+    REPLICATION FACTOR = 1
+    In a real cluster you'd use 3. We use 1 because we have only one
+    DataNode (pseudo-distributed). This also saves disk space.
+  -->
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+    <description>
+      Number of HDFS block replicas. Must be 1 for a single-node setup.
+      In production this would be 3 for fault tolerance.
+    </description>
+  </property>
+
+  <!--
+    BLOCK SIZE = 64 MB
+    Default is 128 MB. We use 64 MB so that even the 26M-row ratings.csv
+    (~700 MB) splits into ~11 blocks, giving ~11 map tasks — demonstrating
+    data locality and parallel reading concepts.
+  -->
+  <property>
+    <name>dfs.blocksize</name>
+    <value>67108864</value>
+    <!-- 64 * 1024 * 1024 = 67,108,864 bytes = 64 MB -->
+    <description>
+      HDFS block size in bytes. Smaller = more blocks = more map tasks.
+      64 MB chosen to visibly demonstrate block splitting on ratings.csv.
+    </description>
+  </property>
+
+  <!-- NameNode data directory (stores filesystem metadata) -->
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///home/${user.name}/cinescope-hadoop-tmp/dfs/name</value>
+  </property>
+
+  <!-- DataNode data directory (stores actual block data) -->
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:///home/${user.name}/cinescope-hadoop-tmp/dfs/data</value>
+  </property>
+
+  <!--
+    Disable permissions check — simplifies development on a single-user machine.
+    NEVER do this in production.
+  -->
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>false</value>
+  </property>
+
+  <!-- SafeMode threshold — 0 means don't wait for replicas before exiting safe mode -->
+  <property>
+    <name>dfs.safemode.threshold.pct</name>
+    <value>0</value>
+  </property>
+
+  <!-- Web UI for NameNode (browse HDFS visually) -->
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>0.0.0.0:9870</value>
+    <description>
+      NameNode Web UI. Open http://localhost:9870 in your Windows browser
+      to browse HDFS, see blocks, DataNode status, etc.
+    </description>
+  </property>
+
+</configuration>

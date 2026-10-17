@@ -1,0 +1,7 @@
+phase,job_name,scale,start_time,end_time,runtime_s,num_mappers,num_reducers,input_bytes,output_bytes,shuffle_bytes,map_output_records,reduce_output_records,custom_counters,notes
+# This file is populated automatically by each run_*.sh script.
+# Format:
+#   phase: 1=HDFS, 2=Pig, 3=Hive, 4A=CF, 4B=Search, 4C=NaiveBayes, 4D=KMeans
+#   scale: DEV / MEDIUM / FULL
+#   runtime_s: wall-clock seconds
+#   custom_counters: JSON string e.g. {"bad_records":12,"pruned_pairs":45000}

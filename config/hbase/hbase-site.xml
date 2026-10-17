@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  hbase-site.xml — HBase Configuration (standalone mode)
+  Place at: $HBASE_HOME/conf/hbase-site.xml
+
+  We use STANDALONE mode (HBase manages its own embedded ZooKeeper and
+  stores data on HDFS or local FS). This is the simplest setup for dev.
+
+  For CineScope we configure HBase to use HDFS for data storage so that
+  all data lives in the same place and we can demonstrate HBase+HDFS integration.
+-->
+<configuration>
+
+  <!-- ──────────────────────────────────────────────────────────
+       STORAGE ROOT — where HBase stores its data
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://localhost:9000/hbase</value>
+    <description>
+      HBase stores its tables and WAL (Write-Ahead Log) here.
+      Using HDFS (not local FS) so HBase data is part of our HDFS ecosystem.
+      Requires Hadoop HDFS to be running before starting HBase.
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       CLUSTER MODE — standalone with embedded ZooKeeper
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>false</value>
+    <description>
+      "false" = standalone mode: HBase Master, RegionServer, and ZooKeeper
+      all run in the same JVM process. Simple to start/stop.
+      Set to "true" for pseudo-distributed or fully distributed modes.
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       ZOOKEEPER — embedded ZooKeeper settings
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>localhost</value>
+    <description>
+      ZooKeeper quorum address. In standalone mode HBase starts its own
+      ZooKeeper on this host. In a real cluster this lists all ZK nodes.
+    </description>
+  </property>
+
+  <property>
+    <name>hbase.zookeeper.property.clientPort</name>
+    <value>2181</value>
+    <description>Port ZooKeeper listens on. Clients (hbase shell, happybase) connect here.</description>
+  </property>
+
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/home/${user.name}/cinescope-hbase-zk</value>
+    <description>ZooKeeper data directory — stores ZK snapshots and transaction logs.</description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       THRIFT SERVER — for Python (happybase) access
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hbase.regionserver.thrift.port</name>
+    <value>9090</value>
+    <description>
+      HBase Thrift server port. happybase (Python client) connects here.
+      Start with: hbase thrift start -p 9090
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       MEMORY SETTINGS — tuned for 8GB WSL
+       ────────────────────────────────────────────────────────── -->
+
+  <!--
+    HBase Master heap: 256 MB (it's mostly a coordinator)
+    HBase RegionServer heap: 512 MB (does the actual data serving)
+    These are set via HBASE_MASTER_OPTS and HBASE_REGIONSERVER_OPTS
+    in hbase-env.sh (not here) — see the install script.
+  -->
+
+  <!-- Reduce HBase log noise -->
+  <property>
+    <name>hbase.regionserver.logroll.period</name>
+    <value>3600000</value>
+    <!-- 1 hour in ms -->
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       MISC
+       ────────────────────────────────────────────────────────── -->
+
+  <!-- HBase Web UI — browse at http://localhost:16010 -->
+  <property>
+    <name>hbase.master.info.port</name>
+    <value>16010</value>
+    <description>HBase Master web UI port.</description>
+  </property>
+
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value>16030</value>
+    <description>HBase RegionServer web UI port.</description>
+  </property>
+
+</configuration>

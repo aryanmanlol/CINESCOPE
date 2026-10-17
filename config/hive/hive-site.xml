@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  hive-site.xml — Hive Configuration
+  Place at: $HIVE_HOME/conf/hive-site.xml
+  (The install script will symlink/copy from this repo.)
+
+  We use Derby (embedded) as the metastore database for simplicity.
+  In production you'd use MySQL/PostgreSQL. Derby is single-user only
+  (only one Hive session can use the metastore at a time) — fine for dev.
+-->
+<configuration>
+
+  <!-- ──────────────────────────────────────────────────────────
+       METASTORE — stores table schemas, partition info, etc.
+       Using Derby embedded for zero-config setup.
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:derby:;databaseName=/home/${user.name}/cinescope-hive-metastore/metastore_db;create=true</value>
+    <description>
+      JDBC URL for the Derby metastore database.
+      "create=true" means Derby creates the DB on first run.
+      All table metadata (column names, types, partition info, HDFS locations)
+      is persisted here across sessions.
+    </description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>APP</value>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>mine</value>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       WAREHOUSE — where managed (internal) Hive tables store data in HDFS
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/cinescope/warehouse</value>
+    <description>
+      HDFS path for Hive managed tables. When you CREATE TABLE without
+      EXTERNAL, data is stored here. DROP TABLE deletes data too.
+      External tables (which we use) point elsewhere; DROP TABLE only
+      removes the schema, not the data.
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       HIVESERVER2 — JDBC/Beeline connection settings
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
+    <description>
+      HiveServer2 Thrift port. Beeline connects here:
+        beeline -u "jdbc:hive2://localhost:10000"
+    </description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.bind.host</name>
+    <value>localhost</value>
+  </property>
+
+  <!-- Disable authentication for local dev (no Kerberos) -->
+  <property>
+    <name>hive.server2.authentication</name>
+    <value>NONE</value>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       EXECUTION ENGINE
+       ────────────────────────────────────────────────────────── -->
+
+  <!--
+    Use MapReduce as the execution engine (not Tez or Spark).
+    This is intentional: we want Hive to generate MapReduce jobs so we can
+    observe and benchmark them against our hand-written MR jobs.
+  -->
+  <property>
+    <name>hive.execution.engine</name>
+    <value>mr</value>
+    <description>
+      Execution engine: "mr" (MapReduce), "tez", or "spark".
+      We use "mr" to demonstrate Hive-to-MR compilation and to measure
+      Hive overhead vs raw MapReduce for the benchmark in Phase 3.
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       DYNAMIC PARTITIONING (needed for Phase 3)
+       ────────────────────────────────────────────────────────── -->
+
+  <property>
+    <name>hive.exec.dynamic.partition</name>
+    <value>true</value>
+    <description>Enables dynamic partition inserts (partition values determined at query time).</description>
+  </property>
+
+  <property>
+    <name>hive.exec.dynamic.partition.mode</name>
+    <value>nonstrict</value>
+    <description>
+      "nonstrict" allows all partitions to be dynamic.
+      "strict" requires at least one static partition (safer in production
+      to prevent accidental full-table scans creating millions of partitions).
+    </description>
+  </property>
+
+  <property>
+    <name>hive.exec.max.dynamic.partitions</name>
+    <value>1000</value>
+  </property>
+
+  <property>
+    <name>hive.exec.max.dynamic.partitions.pernode</name>
+    <value>500</value>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       ORC / STORAGE FORMATS (Phase 3)
+       ────────────────────────────────────────────────────────── -->
+
+  <!-- Default compression for ORC files -->
+  <property>
+    <name>hive.exec.orc.default.compress</name>
+    <value>SNAPPY</value>
+    <description>
+      ORC files will use Snappy compression by default.
+      Snappy is fast and splittable-friendly (unlike gzip).
+    </description>
+  </property>
+
+  <!-- ──────────────────────────────────────────────────────────
+       MISC SETTINGS
+       ────────────────────────────────────────────────────────── -->
+
+  <!-- Show column headers in SELECT output -->
+  <property>
+    <name>hive.cli.print.header</name>
+    <value>true</value>
+  </property>
+
+  <!-- Scratch directory for Hive temp files -->
+  <property>
+    <name>hive.exec.scratchdir</name>
+    <value>/tmp/hive-${user.name}</value>
+  </property>
+
+  <!-- Reduce logging noise in the Hive CLI -->
+  <property>
+    <name>hive.server2.logging.operation.level</name>
+    <value>EXECUTION</value>
+  </property>
+
+  <!-- Hive metastore connection retries -->
+  <property>
+    <name>hive.metastore.connect.retries</name>
+    <value>3</value>
+  </property>
+
+</configuration>

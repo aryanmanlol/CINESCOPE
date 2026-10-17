@@ -1,0 +1,33 @@
+# CineScope Python dependencies
+# Install with: pip install -r requirements.txt
+# (after activating the venv: source ~/cinescope/venv/bin/activate)
+#
+# All versions pinned for reproducibility.
+# Python 3.10+ required (Ubuntu 22.04 default).
+
+# ── Dashboard ────────────────────────────────────────────────────────────────
+streamlit==1.35.0          # Dashboard framework
+plotly==5.22.0             # Interactive charts (rating distribution, choropleth, etc.)
+Pillow==10.3.0             # Image handling (poster loading, placeholder generation)
+
+# ── Data Processing (serving layer only — NOT on raw 26M-row data) ───────────
+pandas==2.2.2              # Reading pre-aggregated CSV/parquet outputs from HDFS
+pyarrow==16.1.0            # Parquet read/write (serving layer file format)
+numpy==1.26.4              # Numerical operations (CF scoring, similarity blending)
+
+# ── Machine Learning (sample/eval only — NOT on full dataset) ────────────────
+scipy==1.13.1              # Sparse matrices (TF-IDF cosine similarity), stats
+scikit-learn==1.5.0        # Sanity checks (KMeans on 5k sample, t-SNE projection)
+
+# ── HBase Client ─────────────────────────────────────────────────────────────
+happybase==1.2.0           # Python HBase client via Thrift
+thrift==0.20.0             # Required by happybase
+
+# ── NLP / Text Processing ────────────────────────────────────────────────────
+nltk==3.8.1                # Tokenization, stopwords (used in MR jobs AND dashboard)
+
+# ── Configuration ────────────────────────────────────────────────────────────
+pyyaml==6.0.1              # Reading project_config.yaml
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+requests==2.32.2           # HTTP requests (TMDB poster URL validation)

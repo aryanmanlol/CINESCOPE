@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  yarn-site.xml — YARN Resource Manager Configuration
+  Controls how containers are allocated across the cluster.
+  Place at: $HADOOP_HOME/etc/hadoop/yarn-site.xml
+
+  With 8 GB WSL RAM:
+    - System/OS overhead:  ~1.5 GB
+    - YARN NodeManager:    ~0.5 GB
+    - Available for jobs:  ~6 GB  → set yarn.nodemanager.resource.memory-mb = 6144
+-->
+<configuration>
+
+  <!-- Shuffle service — required for MapReduce to work on YARN -->
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+    <description>
+      Enables the shuffle service inside NodeManager.
+      MapReduce reducers fetch map outputs via this service.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+
+  <!-- ResourceManager address -->
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>localhost</value>
+  </property>
+
+  <!--
+    Total memory YARN can allocate to containers on this node.
+    6 GB = 6144 MB. Keep 2 GB free for OS + NameNode + DataNode JVMs.
+  -->
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>6144</value>
+  </property>
+
+  <!-- Number of virtual CPU cores YARN can allocate -->
+  <property>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>4</value>
+  </property>
+
+  <!--
+    Minimum and maximum container allocations.
+    Min = 512 MB so small tasks don't waste a 1 GB slot.
+    Max = 4096 MB so a single task can use up to 4 GB if needed.
+  -->
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>512</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>4096</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.minimum-allocation-vcores</name>
+    <value>1</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>4</value>
+  </property>
+
+  <!-- YARN Web UI — browse at http://localhost:8088 -->
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>0.0.0.0:8088</value>
+    <description>
+      YARN ResourceManager web UI. Shows running/completed jobs,
+      container allocations, and application logs.
+    </description>
+  </property>
+
+  <!--
+    Disable virtual memory checking on WSL2.
+    WSL2's memory model differs from bare-metal Linux; YARN's vmem checks
+    will kill containers unnecessarily if this is enabled.
+  -->
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>false</value>
+  </property>
+
+  <!-- Log aggregation — collect container logs to HDFS after job completes -->
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</name>
+    <value>3600</value>
+  </property>
+
+</configuration>

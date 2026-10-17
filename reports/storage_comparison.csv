@@ -1,0 +1,9 @@
+file,format,compression,hdfs_size_bytes,local_size_bytes,compression_ratio,splittable,map_tasks,runtime_s,notes
+# Populated by scripts/12_compression_experiment.sh
+# splittable: YES/NO — determines whether a file can be split into multiple map tasks
+# compression_ratio: local_size / hdfs_size (>1 means compression saves space)
+# Notes on splittability:
+#   gzip (.gz):  NOT splittable — MapReduce treats entire file as 1 split
+#   bzip2 (.bz2): SPLITTABLE — bzip2 block boundaries are seekable
+#   Snappy:      NOT splittable as raw file (splittable inside SequenceFile/ORC)
+#   ORC/Parquet: SPLITTABLE at column stripe boundaries

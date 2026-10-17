@@ -1,0 +1,7 @@
+query_id,query_text,retrieval_model,precision_at_10,recall_at_10,average_precision,ndcg_at_10,num_relevant,num_retrieved,notes
+# Populated by analysis/search_eval.py after Phase 4B
+# retrieval_model: tfidf or bm25
+# precision_at_10: fraction of top-10 results that are relevant
+# recall_at_10: fraction of all relevant docs found in top-10
+# average_precision: area under precision-recall curve
+# ndcg_at_10: Normalized Discounted Cumulative Gain at rank 10
